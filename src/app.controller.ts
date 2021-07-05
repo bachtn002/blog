@@ -3,8 +3,8 @@ import { AuthGuard } from '@nestjs/passport';
 import { AppService } from './app.service';
 import { AuthService } from './auth/auth.service';
 import { RolesGuard } from './auth/roles.guard';
-import { Roles } from './users/role.decorator';
-import { Role } from './users/role.enum';
+import { Roles } from './user/entities/role.decorator';
+import { Role } from './user/entities/role.enum';
 
 @Controller()
 export class AppController {
@@ -25,6 +25,6 @@ export class AppController {
   }
   @Post('api/register')
   async register(@Request() request) {
-
+    
   }
 }
