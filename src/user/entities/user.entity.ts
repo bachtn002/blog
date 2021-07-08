@@ -1,3 +1,4 @@
+import { Exclude } from "class-transformer";
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
 import { Role } from "./role.enum";
 
@@ -20,6 +21,11 @@ export class User{
     @CreateDateColumn({
     })
     CreatedUtcDate:Date;
+    @Exclude()
+    @Column({
+        default:null,
+    })
+    public currentRefreshToken?: string;
     @Column({
         type:'enum',
         enum:Role,

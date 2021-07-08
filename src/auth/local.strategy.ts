@@ -9,11 +9,12 @@ export class LocalStrategy extends PassportStrategy(Strategy){
     constructor(private readonly authService: AuthService){
         super();
     }
-    // async validate(Mobile: string, PasswordHash: string): Promise<any>{
-    //     const user = await this.authService.validateUser(Mobile, PasswordHash);
-    //     if(!user){
-    //         throw new UnauthorizedException();
-    //     }
-    //     return user;
-    // }
+    async validate(Mobile: string, PasswordHash: string): Promise<any>{
+        const user = await this.authService.validateUser(Mobile, PasswordHash);
+        if(!user){
+            throw new UnauthorizedException();
+        }
+        console.log(user);
+        return user;
+    }
 }

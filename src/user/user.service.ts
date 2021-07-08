@@ -5,6 +5,7 @@ import { getRepository, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -27,29 +28,61 @@ export class UserService {
     const newUser = new User();
     newUser.Mobile = Mobile;
     newUser.PasswordHash = Password;
-    const error = await validate(newUser);
-    if (error.length > 0) {
+    const errors = await validate(newUser);
+    console.log(111);
+    if (errors.length > 0) {
+      console.log(333)
       const errorNew = { Mobile: 'Invalid mobile' };
       throw new HttpException({ message: 'Input data validation failed', errorNew }, HttpStatus.BAD_REQUEST);
     }
     else {
       const savedUser = this.userRepo.save(newUser);
+      return savedUser;
     }
   }
 
-  findAll() {
-    return `This action returns all user`;
+  async findAll(): Promise<User[]> {
+    const result = await getRepository(User).createQueryBuilder();
+    const users = await result.getMany();
+    console.log(users);
+    return users
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} user`;
+    const result = this.userRepo.findOne(id);
+    return result;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  public async update(id: number, updateUserDto: UpdateUserDto):Promise<User> {
+    const userUpdate= await this.userRepo.findOne(id);
+    const userMobile = await this.userRepo.findOne({Mobile:updateUserDto.Mobile});
+    if( userMobile && userUpdate.UserId!== userMobile.UserId) {
+      return null;
+    }
+    delete userUpdate.PasswordHash;
+    delete userUpdate.Mobile;
+    delete userUpdate.Role;
+    const updated= Object.assign(userUpdate,updateUserDto);
+    return await this.userRepo.save(updated);
   }
 
   remove(id: number) {
     return `This action removes a #${id} user`;
+  }
+
+  async getUser(Mobile: string): Promise<User> {
+    const user = await this.userRepo.findOne({ Mobile: Mobile });
+    return user;
+  }
+  public async saveRefreshToken(refreshToken: string, UserId: number) {
+    const currentRefreshToken = await bcrypt.hash(refreshToken, 10);
+    await this.userRepo.update(UserId, { currentRefreshToken });
+  }
+  public async getUserWithRefreshToken(refreshToken: string, UserId: number){
+    const user = await this.findOne(UserId);
+    const currentRefreshToken = await bcrypt.compare(refreshToken,user.currentRefreshToken);
+    if(currentRefreshToken){
+      return user;
+    }
   }
 }
