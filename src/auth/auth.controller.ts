@@ -1,4 +1,4 @@
-import { Body, Redirect } from "@nestjs/common";
+import { Body, Redirect, UnauthorizedException, UsePipes, ValidationPipe } from "@nestjs/common";
 import { Get } from "@nestjs/common";
 import { Post, UseGuards, Request, Response, Controller, Res } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
@@ -12,24 +12,33 @@ export class AuthController {
     constructor(private readonly userService: UserService,
         private readonly authService: AuthService) { }
 
-    @UseGuards(AuthGuard('local'))
+    @UsePipes(new ValidationPipe({ transform: true }))
+    //@UseGuards(AuthGuard('local'))
     @Post('sign-in')
-    async login(@Request() request, @Response() response) {
-        const cookie = await this.authService.login(request.user);
-        const cookieRefreshToken = await this.authService.getCookieWithRefreshToken(request.user);
-        const refreshToken = await this.authService.getRefreshToken(request.user);
-        await this.userService.saveRefreshToken(refreshToken, request.user.UserId);
-        request.res.setHeader('Set-Cookie', [cookie,cookieRefreshToken]);
-        return response.send('OK!');
+    public async login(@Request() request, @Response() response, @Body() loginUserDto: LoginUserDto) {
+        const user = await this.authService.checkLogin(loginUserDto);
+        if (user !== null) {
+            const cookie = await this.authService.login(loginUserDto);
+            const cookieRefreshToken = await this.authService.getCookieWithRefreshToken(loginUserDto);
+            const refreshToken = await this.authService.getRefreshToken(loginUserDto);
+            await this.userService.saveRefreshToken(refreshToken, user.UserId);
+            request.res.setHeader('Set-Cookie', [cookie, cookieRefreshToken]);
+            return response.send('OK!');
+        } else {
+            throw new UnauthorizedException({ message: 'Mobile or password incorrect' });
+        }
     }
+
     @Post('sign-out')
     public async logout(@Request() request, @Response() response) {
         response.setHeader('Set-Cookie', this.authService.logOutTokenFromCookie());
         return response.sendStatus(200);
     }
+
     @UseGuards(AuthGuard('jwt-refresh-token'))
     @Get('refresh-token')
-    public async newToken(@Request() request){
+    public async newToken(@Request() request) {
+        console.log(request);
         const newAccessTokenCookie = await this.authService.login(request.user);
         request.res.setHeader('Set-Cookie', newAccessTokenCookie);
         return request.user;

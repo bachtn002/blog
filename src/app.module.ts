@@ -5,6 +5,8 @@ import { AuthModule } from './auth/auth.module';
 
 import { UserModule } from './user/user.module';
 import { User } from './user/entities/user.entity';
+import { Shop } from './user/entities/shop.entity';
+import { ShopUser } from './user/entities/shop.user.entity';
 
 @Module({
   imports: [AuthModule,UserModule,
@@ -16,11 +18,11 @@ import { User } from './user/entities/user.entity';
       password: '123456',
       database: 'blog_dev',
       entities: [
-        User
+        User, Shop, ShopUser
       ],
       synchronize:true,
     }),
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User,Shop, ShopUser]),
   ],
 })
 export class AppModule {}

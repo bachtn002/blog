@@ -7,7 +7,7 @@ export class LoginUserDto{
     @MinLength(10)
     @IsNotEmpty()
     @ApiProperty()
-    Mobile:string;
+    Mobile: string;
 
     @IsString()
     @IsNotEmpty()
