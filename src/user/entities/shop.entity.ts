@@ -1,7 +1,7 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { ShopStatus } from "./shop.status.enum";
 
-@Entity()
+@Entity({name:'T_Shop'})
 export class Shop {
 
     @PrimaryGeneratedColumn('uuid')

@@ -30,7 +30,7 @@ export class AuthController {
     }
 
     @Post('sign-out')
-    public async logout(@Request() request, @Response() response) {
+    public async logout(@Response() response) {
         response.setHeader('Set-Cookie', this.authService.logOutTokenFromCookie());
         return response.sendStatus(200);
     }

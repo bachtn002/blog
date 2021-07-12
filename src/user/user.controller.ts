@@ -14,8 +14,7 @@ import { JwtService } from '@nestjs/jwt';
 @Controller('api/user')
 export class UserController {
   constructor(private readonly userService: UserService,
-    private readonly authService: AuthService,
-    private readonly jwtService: JwtService
+
     ) { }
 
   @Post('sign-up')
@@ -50,7 +49,7 @@ export class UserController {
   @Delete('delete/:id')
   @Roles(Role.ADMIN)
   @UseGuards(AuthGuard('jwt'))
-  remove(@Param('id') id: string) {
-    return this.userService.remove(id);
+  public async remove(@Param('id') id: string, @Response() response) {
+    return await this.userService.remove(id, response);
   }
 }

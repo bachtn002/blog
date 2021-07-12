@@ -24,7 +24,7 @@ import { RolesGuard } from './roles.guard';
       secret: jwtConstants.secret,
 
     }),
-    TypeOrmModule.forFeature([User, Shop, ShopUser]),
+     TypeOrmModule.forFeature([User, Shop, ShopUser]),
     PassportModule,
     forwardRef(() => UserModule)
   ],

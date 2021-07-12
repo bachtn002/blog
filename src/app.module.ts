@@ -20,9 +20,8 @@ import { ShopUser } from './user/entities/shop.user.entity';
       entities: [
         User, Shop, ShopUser
       ],
-      synchronize:true,
+      synchronize:false,
     }),
-    TypeOrmModule.forFeature([User,Shop, ShopUser]),
   ],
 })
 export class AppModule {}
