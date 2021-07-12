@@ -31,8 +31,6 @@ export class AuthService {
             .where('user.Mobile=:Mobile', { Mobile: loginUserDto.Mobile })
             .andWhere('user.IsDelete=0')
             .getOne();
-        console.log(user);
-        console.log('dshdjshdjshjdhs');
         if (user) {
             const passWordHashIsMatch = await bcrypt.compare(loginUserDto.Password, user.PasswordHash)
             if (passWordHashIsMatch) {

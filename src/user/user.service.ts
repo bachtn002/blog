@@ -63,7 +63,7 @@ export class UserService {
           .update(User)
           .set({
             Mobile: updateUserDto.Mobile,
-            PasswordHash: updateUserDto.Password,
+            PasswordHash: await bcrypt.hash(updateUserDto.Password,10),
             Role: updateUserDto.Role,
             Gender: updateUserDto.Gender,
             DOB: updateUserDto.DOB,
