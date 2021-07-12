@@ -6,7 +6,6 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
-import { response } from 'express';
 import { AuthService } from 'src/auth/auth.service';
 
 @Injectable()
@@ -19,36 +18,34 @@ export class UserService {
   ) { }
   public async create(createUserDto: CreateUserDto) {
     const { Mobile, Password, DOB } = createUserDto;
-    console.log(createUserDto);
     // Check Mobile exists
     const result = await this.userRepo.createQueryBuilder('user')
       .where('user.Mobile = :Mobile', { Mobile })
       .andWhere('user.IsDelete=0')
       .getOne();
-    console.log(2);
-    console.log(result);
-    console.log(3);
     if (result) {
-      const error = { Mobile: 'Mobile must be unique.' };
-      throw new HttpException({ message: 'Input data validation failed', error }, HttpStatus.BAD_REQUEST);
+      throw new HttpException({ message: 'Mobile must be unique.' }, HttpStatus.BAD_REQUEST);
     }
+    //Hash password
+    const passwordHash = await bcrypt.hash(createUserDto.Password, 10);
+    // Create new user
     const savedUser = await this.userRepo.createQueryBuilder()
       .insert()
       .into(User)
       .values([
-        { Mobile: createUserDto.Mobile, PasswordHash: createUserDto.Password, DOB: createUserDto.DOB }
+        { Mobile: createUserDto.Mobile, PasswordHash: passwordHash, DOB: createUserDto.DOB }
       ])
       .execute();
     return savedUser;
   }
 
   public async findAll(): Promise<User[]> {
-    return await getRepository(User).createQueryBuilder().getMany();
+    return await getRepository(User).createQueryBuilder('user')
+      .where('user.IsDelete=:IsDelete',{ IsDelete:false}).getMany();
   }
 
   public async findOne(UserId: string) {
-    const result = await this.userRepo.findOne(UserId);
-    return result;
+    return await this.userRepo.findOne(UserId);
   }
 
   public async update(id: string, updateUserDto: UpdateUserDto, response: any) {
@@ -61,24 +58,31 @@ export class UserService {
       if (userFromMobile) {
         throw new HttpException({ message: 'This mobile already exists' }, HttpStatus.BAD_REQUEST);
       } else {
-        // return await this.userRepo.update(UserId, {
-        //   Mobile: updateUserDto.Mobile,
-        //   PasswordHash: updateUserDto.Password,
-        //   Role: updateUserDto.Role,
-        //   Gender: updateUserDto.Gender,
-        //   DOB: updateUserDto.DOB
-        // });
-        delete user.Mobile;
-        delete user.PasswordHash;
-        delete user.Role;
-        delete user.Gender;
-        delete user.DOB;
-        user.RefreshToken=null;
-        const updated = Object.assign(user, updateUserDto);
+        // Raw SQL Update
+        const userUpdateRaw = await this.userRepo.createQueryBuilder()
+          .update(User)
+          .set({
+            Mobile: updateUserDto.Mobile,
+            PasswordHash: updateUserDto.Password,
+            Role: updateUserDto.Role,
+            Gender: updateUserDto.Gender,
+            DOB: updateUserDto.DOB,
+            RefreshToken: null
+          })
+          .where('UserId=:id', { id: user.UserId })
+          .execute();
+
+        // delete user.Mobile;
+        // delete user.PasswordHash;
+        // delete user.Role;
+        // delete user.Gender;
+        // delete user.DOB;
+        // user.RefreshToken = null;
+        // const updated = Object.assign(user, updateUserDto);
         response.setHeader('Set-Cookie', this.authService.logOutTokenFromCookie());
-        const userUpdated = await this.userRepo.save(updated);
-        console.log(userUpdated);
-        return userUpdated;
+        // const userUpdated = await this.userRepo.save(updated);
+        console.log(userUpdateRaw);
+        return userUpdateRaw;
       }
     }
 
@@ -90,8 +94,21 @@ export class UserService {
     });
   }
 
-  remove(UserId: string) {
-    return `This action removes a #${UserId} user`;
+  public async remove(id: string, response: any) {
+    const userRemove = await this.userRepo.findOne(id);
+    if (!userRemove) {
+      throw new HttpException({ message: 'Not found user' }, HttpStatus.BAD_REQUEST);
+    }
+    else {
+      await this.userRepo.createQueryBuilder()
+        .update(User)
+        .set({
+          IsDelete: true
+        })
+        .where('UserId=:id', { id: userRemove.UserId })
+        .execute();
+      return response.send('OK REMOVE');
+    }
   }
 
   async getUser(Mobile: string): Promise<User> {

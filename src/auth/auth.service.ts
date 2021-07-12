@@ -7,6 +7,7 @@ import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 import { jwtConstants } from './constants';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -15,7 +16,6 @@ export class AuthService {
         private readonly userService: UserService,
         private readonly jwtService: JwtService,
         @InjectRepository(User) private readonly userRepo: Repository<User>
-
     ) { }
 
     async validateUser(Mobile: string, PasswordHash: string): Promise<any> {
@@ -26,20 +26,25 @@ export class AuthService {
         }
         return null;
     }
-    public async checkLogin(loginUserDto: LoginUserDto):Promise<any> {
+    public async checkLogin(loginUserDto: LoginUserDto): Promise<any> {
         const user = await this.userRepo.createQueryBuilder('user')
-            .where('user.Mobile=:Mobile',{Mobile: loginUserDto.Mobile})
+            .where('user.Mobile=:Mobile', { Mobile: loginUserDto.Mobile })
             .andWhere('user.IsDelete=0')
             .getOne();
-        if(user && user.PasswordHash === loginUserDto.Password){
-            const { PasswordHash, ...result } = user;
-            return result;
+        console.log(user);
+        console.log('dshdjshdjshjdhs');
+        if (user) {
+            const passWordHashIsMatch = await bcrypt.compare(loginUserDto.Password, user.PasswordHash)
+            if (passWordHashIsMatch) {
+                const { PasswordHash, ...result } = user;
+                return result;
+            }
         }
         return null;
     }
     public async login(loginUserDto: LoginUserDto) {
         const user = await this.userRepo.createQueryBuilder('user')
-            .where('user.Mobile=:Mobile',{Mobile: loginUserDto.Mobile})
+            .where('user.Mobile=:Mobile', { Mobile: loginUserDto.Mobile })
             .andWhere('user.IsDelete=0')
             .getOne();
         const payload = { Mobile: user.Mobile, UserId: user.UserId, Role: user.Role };
@@ -51,7 +56,7 @@ export class AuthService {
     }
     public async getCookieWithRefreshToken(loginUserDto: LoginUserDto) {
         const user = await this.userRepo.createQueryBuilder('user')
-            .where('user.Mobile=:Mobile',{Mobile: loginUserDto.Mobile})
+            .where('user.Mobile=:Mobile', { Mobile: loginUserDto.Mobile })
             .andWhere('user.IsDelete=0')
             .getOne();
         const payload = { Mobile: user.Mobile, UserId: user.UserId, Role: user.Role };
@@ -63,7 +68,7 @@ export class AuthService {
     }
     public async getRefreshToken(loginUserDto: LoginUserDto) {
         const user = await this.userRepo.createQueryBuilder('user')
-            .where('user.Mobile=:Mobile',{Mobile: loginUserDto.Mobile})
+            .where('user.Mobile=:Mobile', { Mobile: loginUserDto.Mobile })
             .andWhere('user.IsDelete=0')
             .getOne();
         const payload = { Mobile: user.Mobile, UserId: user.UserId, Role: user.Role };

@@ -4,7 +4,7 @@ import { Gender } from "./gender.enum";
 import { Role } from "./role.enum";
 
 
-@Entity()
+@Entity({name:'T_User'})
 export class User {
 
     @PrimaryGeneratedColumn('uuid')

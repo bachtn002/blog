@@ -1,9 +1,9 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Role } from "./role.enum";
 import { Shop } from "./shop.entity";
 import { User } from "./user.entity";
 
-@Entity()
+@Entity({name: 'T_ShopUser'})
 export class ShopUser{
     @PrimaryGeneratedColumn({type:'bigint'})
     ShopUserId: string;
@@ -20,9 +20,11 @@ export class ShopUser{
     @Column({ type: 'bit', nullable: false, default: false})
     IsDelete: boolean;
 
-    @ManyToOne(()=>User, user=>user.UserId)
+    @ManyToOne(()=>User, user=>user.UserId,{ nullable: false})
+    @JoinColumn({name:'UserId'})
     user:User;
     
-    @ManyToOne(()=>Shop,shop=>shop.ShopId)
+    @ManyToOne(()=>Shop,shop=>shop.ShopId, {nullable: false})
+    @JoinColumn({name:'ShopId'})
     shop:Shop
 }
