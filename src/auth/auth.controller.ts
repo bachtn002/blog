@@ -13,34 +13,13 @@ export class AuthController {
         private readonly authService: AuthService) { }
 
     @UsePipes(new ValidationPipe({ transform: true }))
-    //@UseGuards(AuthGuard('local'))
     @Post('sign-in')
-    public async login(@Request() request, @Response() response, @Body() loginUserDto: LoginUserDto) {
-        const user = await this.authService.checkLogin(loginUserDto);
-        if (user !== null) {
-            const cookie = await this.authService.login(loginUserDto);
-            const cookieRefreshToken = await this.authService.getCookieWithRefreshToken(loginUserDto);
-            const refreshToken = await this.authService.getRefreshToken(loginUserDto);
-            await this.userService.saveRefreshToken(refreshToken, user.UserId);
-            request.res.setHeader('Set-Cookie', [cookie, cookieRefreshToken]);
-            return response.send('OK!');
-        } else {
-            throw new UnauthorizedException({ message: 'Mobile or password incorrect' });
-        }
+    public async login(@Response() response, @Body() loginUserDto: LoginUserDto) {
+        return this.authService.createdToken(loginUserDto,response);
     }
-
+    @UseGuards(AuthGuard('jwt'))
     @Post('sign-out')
     public async logout(@Response() response) {
-        response.setHeader('Set-Cookie', this.authService.logOutTokenFromCookie());
-        return response.sendStatus(200);
-    }
-
-    @UseGuards(AuthGuard('jwt-refresh-token'))
-    @Get('refresh-token')
-    public async newToken(@Request() request) {
-        console.log(request);
-        const newAccessTokenCookie = await this.authService.login(request.user);
-        request.res.setHeader('Set-Cookie', newAccessTokenCookie);
-        return request.user;
+        
     }
 }

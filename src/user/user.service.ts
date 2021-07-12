@@ -71,16 +71,6 @@ export class UserService {
           })
           .where('UserId=:id', { id: user.UserId })
           .execute();
-
-        // delete user.Mobile;
-        // delete user.PasswordHash;
-        // delete user.Role;
-        // delete user.Gender;
-        // delete user.DOB;
-        // user.RefreshToken = null;
-        // const updated = Object.assign(user, updateUserDto);
-        response.setHeader('Set-Cookie', this.authService.logOutTokenFromCookie());
-        // const userUpdated = await this.userRepo.save(updated);
         console.log(userUpdateRaw);
         return userUpdateRaw;
       }
@@ -117,8 +107,7 @@ export class UserService {
     return user;
   }
   public async saveRefreshToken(refreshToken: string, UserId: string) {
-    const RefreshToken = await bcrypt.hash(refreshToken, 10);
-    await this.userRepo.update(UserId, { RefreshToken });
+    await this.userRepo.update(UserId, { RefreshToken : refreshToken });
   }
   public async getUserWithRefreshToken(refreshToken: string, UserId: string) {
     const user = await this.findOne(UserId);

@@ -1,4 +1,4 @@
-import { forwardRef, Inject } from '@nestjs/common';
+import { forwardRef, HttpException, HttpStatus, Inject } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -26,57 +26,33 @@ export class AuthService {
         }
         return null;
     }
-    public async checkLogin(loginUserDto: LoginUserDto): Promise<any> {
-        const user = await this.userRepo.createQueryBuilder('user')
-            .where('user.Mobile=:Mobile', { Mobile: loginUserDto.Mobile })
-            .andWhere('user.IsDelete=0')
-            .getOne();
-        if (user) {
-            const passWordHashIsMatch = await bcrypt.compare(loginUserDto.Password, user.PasswordHash)
+
+    public async createdToken(loginUserDto: LoginUserDto, response: any): Promise<any> {
+
+        const userLogin = await this.userRepo.findOne({ Mobile: loginUserDto.Mobile, IsDelete: false });
+        if (userLogin) {
+            const passWordHashIsMatch = await bcrypt.compare(loginUserDto.Password, userLogin.PasswordHash);
             if (passWordHashIsMatch) {
-                const { PasswordHash, ...result } = user;
-                return result;
+                const payload = { Mobile: userLogin.Mobile, UserId: userLogin.UserId, Role: userLogin.Role };
+                const refreshToken = this.jwtService.sign(payload, {
+                    secret: jwtConstants.secret,
+                    expiresIn: '500000s',
+                });
+                await this.userService.saveRefreshToken(refreshToken, userLogin.UserId);
+                return response.json({
+                    accessToken: this.jwtService.sign(payload, {
+                        secret: jwtConstants.secret,
+                        expiresIn: '500s'
+                    }),
+                    refreshToken: refreshToken
+                });
+            } else {
+                return response.status(400).send({ message: 'Mobile or password incorrect' });
             }
         }
-        return null;
     }
-    public async login(loginUserDto: LoginUserDto) {
-        const user = await this.userRepo.createQueryBuilder('user')
-            .where('user.Mobile=:Mobile', { Mobile: loginUserDto.Mobile })
-            .andWhere('user.IsDelete=0')
-            .getOne();
-        const payload = { Mobile: user.Mobile, UserId: user.UserId, Role: user.Role };
-        const token = this.jwtService.sign(payload, {
-            secret: jwtConstants.secret,
-            expiresIn: '30s'
-        });
-        return `AccessToken=${token};HttpOnly;Path=/;Max-Age=${30}`;
-    }
-    public async getCookieWithRefreshToken(loginUserDto: LoginUserDto) {
-        const user = await this.userRepo.createQueryBuilder('user')
-            .where('user.Mobile=:Mobile', { Mobile: loginUserDto.Mobile })
-            .andWhere('user.IsDelete=0')
-            .getOne();
-        const payload = { Mobile: user.Mobile, UserId: user.UserId, Role: user.Role };
-        const refreshToken = this.jwtService.sign(payload, {
-            secret: jwtConstants.secret,
-            expiresIn: '50000s'
-        });
-        return `RefreshToken=${refreshToken};HttpOnly;Path=/;Max-Age=${50000}`;
-    }
-    public async getRefreshToken(loginUserDto: LoginUserDto) {
-        const user = await this.userRepo.createQueryBuilder('user')
-            .where('user.Mobile=:Mobile', { Mobile: loginUserDto.Mobile })
-            .andWhere('user.IsDelete=0')
-            .getOne();
-        const payload = { Mobile: user.Mobile, UserId: user.UserId, Role: user.Role };
-        const refreshToken = this.jwtService.sign(payload, {
-            secret: jwtConstants.secret,
-            expiresIn: '30000s'
-        });
-        return refreshToken;
-    }
-    public logOutTokenFromCookie() {
-        return ['AccessToken=; HttpOnly; Path=/; Max-Age=0', 'RefreshToken=;HttpOnly; Path=/; Max-Age=0'];
+
+    public async logOut(): Promise<any> {
+        
     }
 }
