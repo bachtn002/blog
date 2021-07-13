@@ -1,9 +1,7 @@
 import { Body, Redirect, UnauthorizedException, UsePipes, ValidationPipe } from "@nestjs/common";
-import { Get } from "@nestjs/common";
-import { Post, UseGuards, Request, Response, Controller, Res } from "@nestjs/common";
+import { Post, UseGuards, Request, Response, Controller, Get, Res } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { LoginUserDto } from "src/user/dto/login-user.dto";
-import { User } from "src/user/entities/user.entity";
 import { UserService } from "src/user/user.service";
 import { AuthService } from "./auth.service";
 
@@ -21,5 +19,10 @@ export class AuthController {
     @Post('sign-out')
     public async logout(@Response() response) {
         
+    }
+    @UseGuards(AuthGuard('jwt-refresh-token'))
+    @Get('refresh')
+    public async refreshToken(@Request() request, @Response() response){
+        return await this.authService.createdNewToken(request, response);
     }
 }

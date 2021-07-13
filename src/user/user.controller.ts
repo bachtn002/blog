@@ -42,7 +42,6 @@ export class UserController {
   public async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto,
     @Response() response) {
       await this.userService.update(id, updateUserDto, response);
-      throw new UnauthorizedException();
   }
 
   @Delete('delete/:id')

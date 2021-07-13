@@ -17,18 +17,11 @@ export class UserService {
     private readonly authService: AuthService
   ) { }
   public async create(createUserDto: CreateUserDto) {
-    const { Mobile, Password, DOB } = createUserDto;
-    // Check Mobile exists
-    const result = await this.userRepo.createQueryBuilder('user')
-      .where('user.Mobile = :Mobile', { Mobile })
-      .andWhere('user.IsDelete=0')
-      .getOne();
-    if (result) {
+    const user = await this.userRepo.findOne({Mobile:createUserDto.Mobile});
+    if (user) {
       throw new HttpException({ message: 'Mobile must be unique.' }, HttpStatus.BAD_REQUEST);
     }
-    //Hash password
     const passwordHash = await bcrypt.hash(createUserDto.Password, 10);
-    // Create new user
     const savedUser = await this.userRepo.createQueryBuilder()
       .insert()
       .into(User)
@@ -58,7 +51,6 @@ export class UserService {
       if (userFromMobile) {
         throw new HttpException({ message: 'This mobile already exists' }, HttpStatus.BAD_REQUEST);
       } else {
-        // Raw SQL Update
         const userUpdateRaw = await this.userRepo.createQueryBuilder()
           .update(User)
           .set({
@@ -72,16 +64,10 @@ export class UserService {
           .where('UserId=:id', { id: user.UserId })
           .execute();
         console.log(userUpdateRaw);
-        return userUpdateRaw;
+        return response.status(401).send({message: 'Unauthorized'});
       }
     }
 
-  }
-
-  public async removeRefreshToken(id: string) {
-    return await this.userRepo.update(id, {
-      RefreshToken: null
-    });
   }
 
   public async remove(id: string, response: any) {
@@ -101,8 +87,7 @@ export class UserService {
     }
   }
 
-  async getUser(Mobile: string): Promise<User> {
-
+  public async getUser(Mobile: string): Promise<User> {
     const user = await this.userRepo.findOne({ Mobile: Mobile });
     return user;
   }

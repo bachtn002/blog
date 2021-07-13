@@ -11,15 +11,12 @@ import { jwtConstants } from "./constants";
 export class JwtRefreshTokenStrategy extends PassportStrategy(Strategy, 'jwt-refresh-token') {
     constructor(private readonly userService: UserService){
         super({
-            jwtFromRequest:ExtractJwt.fromExtractors([(request:Request)=>{
-                return request?.cookies?.RefreshToken
-            }]),
+            jwtFromRequest:ExtractJwt.fromAuthHeaderAsBearerToken(),
+            ignoreExpirations: false,
             secretOrKey:jwtConstants.secret,
-            passReqToCallback: true,
         });
     }
-    public async validate(request: Request, payload: any){
-        const refreshToken = request.cookies?.RefreshToken;
-        return this. userService.getUserWithRefreshToken(refreshToken,payload.UserId);
+    public async validate(payload: any){
+        return {UserId: payload.UserId, Mobile: payload.Mobile, Role: payload.Role};
     }
 }

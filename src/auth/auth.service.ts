@@ -42,7 +42,7 @@ export class AuthService {
                 return response.json({
                     accessToken: this.jwtService.sign(payload, {
                         secret: jwtConstants.secret,
-                        expiresIn: '500s'
+                        expiresIn: '100s'
                     }),
                     refreshToken: refreshToken
                 });
@@ -50,6 +50,16 @@ export class AuthService {
                 return response.status(400).send({ message: 'Mobile or password incorrect' });
             }
         }
+    }
+
+    public async createdNewToken(request: any, response: any): Promise<any>{
+        const payload = {Mobile: request.user.Mobile, UserId: request.user.UserId, Role:request.user.Role}
+        return response.json({
+            accessToken:this.jwtService.sign(payload,{
+                secret: jwtConstants.secret,
+                expiresIn:'100s'
+            })
+        })
     }
 
     public async logOut(): Promise<any> {
