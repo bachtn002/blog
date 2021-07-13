@@ -10,18 +10,15 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     @IsString()
     @MaxLength(20)
     @MinLength(10)
-    @IsNotEmpty()
     @ApiProperty()
     Mobile:string;
 
     @IsString()
-    @IsNotEmpty()
     @MaxLength(255)
     @MinLength(8)
     @ApiProperty()
     Password:string;
 
-    @IsNotEmpty()
     @ApiProperty()
     Role:Role
 

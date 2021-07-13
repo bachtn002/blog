@@ -1,13 +1,12 @@
-import { Body, Redirect, UnauthorizedException, UsePipes, ValidationPipe } from "@nestjs/common";
-import { Post, UseGuards, Request, Response, Controller, Get, Res } from "@nestjs/common";
+import { Body, UsePipes, ValidationPipe } from "@nestjs/common";
+import { Post, UseGuards, Request, Response, Controller, Get} from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { LoginUserDto } from "src/user/dto/login-user.dto";
-import { UserService } from "src/user/user.service";
 import { AuthService } from "./auth.service";
 
 @Controller('api/user')
 export class AuthController {
-    constructor(private readonly userService: UserService,
+    constructor(
         private readonly authService: AuthService) { }
 
     @UsePipes(new ValidationPipe({ transform: true }))
@@ -25,4 +24,5 @@ export class AuthController {
     public async refreshToken(@Request() request, @Response() response){
         return await this.authService.createdNewToken(request, response);
     }
+    
 }

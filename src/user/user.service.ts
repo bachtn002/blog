@@ -1,73 +1,48 @@
-import { forwardRef, HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { validate } from 'class-validator';
-import { getRepository, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
-import { AuthService } from 'src/auth/auth.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
-    private readonly userRepo: Repository<User>,
-    @Inject(forwardRef(() => AuthService))
-    private readonly authService: AuthService
+    private readonly userRepo: Repository<User>
   ) { }
   public async create(createUserDto: CreateUserDto) {
-    const user = await this.userRepo.findOne({Mobile:createUserDto.Mobile});
+    const user = await this.userRepo.findOne({ Mobile: createUserDto.Mobile, IsDelete: false });
     if (user) {
-      throw new HttpException({ message: 'Mobile must be unique.' }, HttpStatus.BAD_REQUEST);
+      throw new HttpException({ message: 'Mobile must be unique' }, HttpStatus.BAD_REQUEST);
     }
     const passwordHash = await bcrypt.hash(createUserDto.Password, 10);
-    const savedUser = await this.userRepo.createQueryBuilder()
-      .insert()
-      .into(User)
-      .values([
-        { Mobile: createUserDto.Mobile, PasswordHash: passwordHash, DOB: createUserDto.DOB }
-      ])
-      .execute();
-    return savedUser;
+    const userSaved = new User();
+    userSaved.Mobile = createUserDto.Mobile;
+    userSaved.PasswordHash = passwordHash;
+    userSaved.DOB = createUserDto.DOB;
+    await this.userRepo.save(userSaved);
+    return userSaved;
   }
 
-  public async findAll(): Promise<User[]> {
-    return await getRepository(User).createQueryBuilder('user')
-      .where('user.IsDelete=:IsDelete',{ IsDelete:false}).getMany();
+  public async findAll(page: number, limit: number): Promise<User[]> {
+    return this.userRepo.find({
+      where: {
+        IsDelete: false
+      },
+      take: limit,
+      skip: limit * (page - 1),
+    });
   }
 
   public async findOne(UserId: string) {
-    return await this.userRepo.findOne(UserId);
+    return await this.userRepo.findOne({ UserId: UserId, IsDelete: false });
   }
 
   public async update(id: string, updateUserDto: UpdateUserDto, response: any) {
-
-    const user = await this.userRepo.findOne(id);
-    if (user.Mobile === updateUserDto.Mobile) {
-      throw new HttpException({ message: 'This mobile must be different from the old mobile' }, HttpStatus.BAD_REQUEST);
-    } else {
-      const userFromMobile = await this.userRepo.findOne({ Mobile: updateUserDto.Mobile });
-      if (userFromMobile) {
-        throw new HttpException({ message: 'This mobile already exists' }, HttpStatus.BAD_REQUEST);
-      } else {
-        const userUpdateRaw = await this.userRepo.createQueryBuilder()
-          .update(User)
-          .set({
-            Mobile: updateUserDto.Mobile,
-            PasswordHash: await bcrypt.hash(updateUserDto.Password,10),
-            Role: updateUserDto.Role,
-            Gender: updateUserDto.Gender,
-            DOB: updateUserDto.DOB,
-            RefreshToken: null
-          })
-          .where('UserId=:id', { id: user.UserId })
-          .execute();
-        console.log(userUpdateRaw);
-        return response.status(401).send({message: 'Unauthorized'});
-      }
-    }
-
+    await this.userRepo.update(id, { Gender: updateUserDto.Gender, DOB: updateUserDto.DOB });
+    return response.status(200).send({ message: 'Ok' });
   }
 
   public async remove(id: string, response: any) {
@@ -76,14 +51,9 @@ export class UserService {
       throw new HttpException({ message: 'Not found user' }, HttpStatus.BAD_REQUEST);
     }
     else {
-      await this.userRepo.createQueryBuilder()
-        .update(User)
-        .set({
-          IsDelete: true
-        })
-        .where('UserId=:id', { id: userRemove.UserId })
-        .execute();
-      return response.send('OK REMOVE');
+      userRemove.IsDelete = true;
+      await this.userRepo.save(userRemove);
+      return response.status(200).send({ message: 'Ok Remove' });
     }
   }
 
@@ -92,12 +62,11 @@ export class UserService {
     return user;
   }
   public async saveRefreshToken(refreshToken: string, UserId: string) {
-    await this.userRepo.update(UserId, { RefreshToken : refreshToken });
+    await this.userRepo.update(UserId, { RefreshToken: refreshToken });
   }
   public async getUserWithRefreshToken(refreshToken: string, UserId: string) {
     const user = await this.findOne(UserId);
-    const currentRefreshToken = await bcrypt.compare(refreshToken, user.RefreshToken);
-    if (currentRefreshToken) {
+    if (refreshToken === user.RefreshToken) {
       return user;
     }
   }

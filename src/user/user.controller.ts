@@ -21,14 +21,14 @@ export class UserController {
   create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
   }
-  @Get('show')
+  @Get('index')
   @Roles(Role.ADMIN)
   @UseGuards(AuthGuard('jwt'))
-  findAll() {
-    return this.userService.findAll();
+  findAll(@Query('page') page: number, @Query('limit') limit: number) {
+    return this.userService.findAll(page, limit);
   }
 
-  @Get('show/:id')
+  @Get('index/:id')
   @Roles(Role.ADMIN)
   @UseGuards(AuthGuard('jwt'))
   findOne(@Param('id') id: string) {

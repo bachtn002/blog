@@ -38,31 +38,35 @@ export class AuthService {
                     secret: jwtConstants.secret,
                     expiresIn: '500000s',
                 });
-                await this.userService.saveRefreshToken(refreshToken, userLogin.UserId);
-                return response.json({
-                    accessToken: this.jwtService.sign(payload, {
+                const data = {
+                    AccessToken : this.jwtService.sign(payload, {
                         secret: jwtConstants.secret,
-                        expiresIn: '100s'
+                        expiresIn: '300s',
                     }),
-                    refreshToken: refreshToken
-                });
+                    RefreshToken: refreshToken
+                };
+                // await this.userService.saveRefreshToken(refreshToken, userLogin.UserId);
+                return response.cookie('token', data, { httpOnly: true }).send('ok');
             } else {
                 return response.status(400).send({ message: 'Mobile or password incorrect' });
             }
+        }else{
+            return response.status(400).send({ message: 'Mobile or password incorrect' });
         }
     }
 
-    public async createdNewToken(request: any, response: any): Promise<any>{
-        const payload = {Mobile: request.user.Mobile, UserId: request.user.UserId, Role:request.user.Role}
+    public async createdNewToken(request: any, response: any): Promise<any> {
+
+        const payload = { Mobile: request.user.Mobile, UserId: request.user.UserId, Role: request.user.Role }
         return response.json({
-            accessToken:this.jwtService.sign(payload,{
+            accessToken: this.jwtService.sign(payload, {
                 secret: jwtConstants.secret,
-                expiresIn:'100s'
+                expiresIn: '100s'
             })
-        })
+        });
     }
 
     public async logOut(): Promise<any> {
-        
+
     }
 }
