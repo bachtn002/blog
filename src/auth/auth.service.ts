@@ -1,4 +1,4 @@
-import { forwardRef, HttpException, HttpStatus, Inject } from '@nestjs/common';
+import { forwardRef, Inject } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -6,7 +6,6 @@ import { LoginUserDto } from 'src/user/dto/login-user.dto';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
-import { jwtConstants } from './constants';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -35,13 +34,13 @@ export class AuthService {
             if (passWordHashIsMatch) {
                 const payload = { Mobile: userLogin.Mobile, UserId: userLogin.UserId, Role: userLogin.Role };
                 const refreshToken = this.jwtService.sign(payload, {
-                    secret: jwtConstants.secret,
+                    secret: process.env.SECRET_KEY_TOKEN,
                     expiresIn: '500000s',
                 });
                 const data = {
-                    AccessToken : this.jwtService.sign(payload, {
-                        secret: jwtConstants.secret,
-                        expiresIn: '300s',
+                    AccessToken: this.jwtService.sign(payload, {
+                        secret: process.env.SECRET_KEY_TOKEN,
+                        expiresIn: '30000s',
                     }),
                     RefreshToken: refreshToken
                 };
@@ -50,7 +49,7 @@ export class AuthService {
             } else {
                 return response.status(400).send({ message: 'Mobile or password incorrect' });
             }
-        }else{
+        } else {
             return response.status(400).send({ message: 'Mobile or password incorrect' });
         }
     }
@@ -60,7 +59,7 @@ export class AuthService {
         const payload = { Mobile: request.user.Mobile, UserId: request.user.UserId, Role: request.user.Role }
         return response.json({
             accessToken: this.jwtService.sign(payload, {
-                secret: jwtConstants.secret,
+                secret: process.env.SECRET_KEY_TOKEN,
                 expiresIn: '100s'
             })
         });
