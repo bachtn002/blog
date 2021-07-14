@@ -1,11 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UsePipes, ValidationPipe, Request, Response, Inject, Query, HttpStatus, HttpException, UnauthorizedException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UsePipes, ValidationPipe, Response} from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Roles } from './entities/role.decorator';
 import { AuthGuard } from '@nestjs/passport';
 import { Role } from './entities/role.enum';
 import { UserDto } from './dto/user.dto';
+import { Query } from '@nestjs/common';
 
 @Controller('api/user')
 export class UserController {
@@ -17,11 +17,17 @@ export class UserController {
   create(@Body() dto: UserDto) {
     return this.userService.create(dto);
   }
-  @Get('index')
+  @Post('index')
   @Roles(Role.ADMIN)
   @UseGuards(AuthGuard('jwt'))
   findAll(@Body() dto: UserDto) {
     return this.userService.findAll(dto);
+  }
+
+  @Post('filter')
+  @UseGuards(AuthGuard('jwt'))
+  filterByMobile(@Body() dto: UserDto){
+    return this.userService.filterByMobile(dto);
   }
 
   @Get('index/:id')
@@ -40,7 +46,7 @@ export class UserController {
       await this.userService.update(id, updateUserDto, response);
   }
 
-  @Delete('delete/:id')
+  @Patch('delete/:id')
   @Roles(Role.ADMIN)
   @UseGuards(AuthGuard('jwt'))
   public async remove(@Param('id') id: string, @Response() response) {

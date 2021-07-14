@@ -1,11 +1,11 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { CreateUserDto } from './dto/create-user.dto';
+import { Like, Repository } from 'typeorm';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { UserDto } from './dto/user.dto';
+import { PaginatedResultDto } from './dto/panigated.result.dto';
 
 @Injectable()
 export class UserService {
@@ -22,19 +22,43 @@ export class UserService {
     const userSaved = new User();
     userSaved.Mobile = dto.Mobile;
     userSaved.PasswordHash = passwordHash;
-    userSaved.DOB = dto.DOB;
     await this.userRepo.save(userSaved);
     return userSaved;
   }
 
-  public async findAll(dto: UserDto):Promise<User[]> {
-    return this.userRepo.find({
-      where: {
-        IsDelete: false
-      },
+  public async findAll(dto: UserDto): Promise<PaginatedResultDto> {
+    if(dto.PageNumber <= 0 || dto.PageSize <=0 ){
+      throw new HttpException({ message: 'Page number or page size illegal'}, HttpStatus.BAD_REQUEST);
+    }
+    const users = await this.userRepo.find({
+      where: [
+        {
+          IsDelete: false,
+        }
+      ],
       take: dto.PageSize,
       skip: dto.PageSize * (dto.PageNumber - 1),
     });
+    return {
+      pageNumber: dto.PageNumber,
+      pageSize: dto.PageSize,
+      totalRecords: users.length,
+      data: users,
+    }
+  }
+
+  public async filterByMobile(dto: UserDto): Promise<User[]> {
+    return this.userRepo.find({
+      where: [
+        {
+          IsDelete: false,
+          Mobile: Like(`%${dto.Mobile}%`),
+        }
+      ],
+      order: { Mobile: 'ASC' },
+      take: dto.PageSize,
+      skip: dto.PageSize * (dto.PageNumber - 1),
+    })
   }
 
   public async findOne(UserId: string) {

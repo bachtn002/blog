@@ -24,10 +24,9 @@ export class UserDto{
     })
     ConfirmPassword: string;
 
-    @IsNotEmpty()
+    
     DOB: Date;
-
-    @IsNotEmpty()
+    
     Gender: Gender;
 
     @ApiProperty()

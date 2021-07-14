@@ -16,13 +16,13 @@ export class User {
     @Column({ type: 'varchar', nullable: false, length: 255 })
     PasswordHash: string;
 
-    @Column({ type: 'enum', enum: Role, default: Role.USER })
+    @Column({ type: 'enum', enum: Role, nullable: true })
     Role: Role;
 
-    @Column({ type: 'enum', enum: Gender, default: Gender.MALE })
+    @Column({ type: 'enum', enum: Gender, nullable: true })
     Gender: Gender;
 
-    @Column({ type: 'date', nullable: false })
+    @Column({ type: 'date', nullable: true })
     DOB: Date;
 
     @Exclude()
