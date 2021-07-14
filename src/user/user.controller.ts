@@ -5,11 +5,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { Roles } from './entities/role.decorator';
 import { AuthGuard } from '@nestjs/passport';
 import { Role } from './entities/role.enum';
-import { AuthService } from 'src/auth/auth.service';
-import { forwardRef } from '@nestjs/common';
-import { ApiQuery } from '@nestjs/swagger';
-import { jwtConstants } from 'src/auth/constants';
-import { JwtService } from '@nestjs/jwt';
+import { UserDto } from './dto/user.dto';
 
 @Controller('api/user')
 export class UserController {
@@ -18,14 +14,14 @@ export class UserController {
 
   @Post('sign-up')
   @UsePipes(new ValidationPipe({ transform: true }))
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
+  create(@Body() dto: UserDto) {
+    return this.userService.create(dto);
   }
   @Get('index')
   @Roles(Role.ADMIN)
   @UseGuards(AuthGuard('jwt'))
-  findAll(@Query('page') page: number, @Query('limit') limit: number) {
-    return this.userService.findAll(page, limit);
+  findAll(@Body() dto: UserDto) {
+    return this.userService.findAll(dto);
   }
 
   @Get('index/:id')

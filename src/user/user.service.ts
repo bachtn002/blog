@@ -5,34 +5,35 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
+import { UserDto } from './dto/user.dto';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
-    private readonly userRepo: Repository<User>
+    private readonly userRepo: Repository<User>,
   ) { }
-  public async create(createUserDto: CreateUserDto) {
-    const user = await this.userRepo.findOne({ Mobile: createUserDto.Mobile, IsDelete: false });
+  public async create(dto: UserDto) {
+    const user = await this.userRepo.findOne({ Mobile: dto.Mobile, IsDelete: false });
     if (user) {
       throw new HttpException({ message: 'Mobile must be unique' }, HttpStatus.BAD_REQUEST);
     }
-    const passwordHash = await bcrypt.hash(createUserDto.Password, 10);
+    const passwordHash = await bcrypt.hash(dto.Password, 10);
     const userSaved = new User();
-    userSaved.Mobile = createUserDto.Mobile;
+    userSaved.Mobile = dto.Mobile;
     userSaved.PasswordHash = passwordHash;
-    userSaved.DOB = createUserDto.DOB;
+    userSaved.DOB = dto.DOB;
     await this.userRepo.save(userSaved);
     return userSaved;
   }
 
-  public async findAll(page: number, limit: number): Promise<User[]> {
+  public async findAll(dto: UserDto):Promise<User[]> {
     return this.userRepo.find({
       where: {
         IsDelete: false
       },
-      take: limit,
-      skip: limit * (page - 1),
+      take: dto.PageSize,
+      skip: dto.PageSize * (dto.PageNumber - 1),
     });
   }
 
