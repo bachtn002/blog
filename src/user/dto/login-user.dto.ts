@@ -15,4 +15,5 @@ export class LoginUserDto{
     @MinLength(8)
     @ApiProperty()
     Password:string;
+    
 }

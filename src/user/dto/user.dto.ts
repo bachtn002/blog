@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString, MaxLength, MinLength } from "class-validator";
+import { IsDate, IsNotEmpty, IsPositive, IsString, MaxLength, MinLength } from "class-validator";
 import { Gender } from "../entities/gender.enum";
+import { Role } from "../entities/role.enum";
 import { Match } from "./match.decorator";
 
 
@@ -9,29 +10,44 @@ export class UserDto{
     @IsNotEmpty()
     @MaxLength(20)
     @MinLength(10)
-    Mobile: string
+    mobile: string
 
     @IsString()
     @IsNotEmpty()
     @MaxLength(255)
     @MinLength(8)
-    Password:string;
+    password:string;
 
     @IsString()
     @IsNotEmpty()
     @Match('Password',{
         message:'Repeat password not match'
     })
-    ConfirmPassword: string;
+    confirmPassword: string;
 
+    @IsDate()
+    @IsNotEmpty()
+    dob: Date;
     
-    DOB: Date;
-    
-    Gender: Gender;
+    @IsString()
+    @IsNotEmpty()
+    gender: Gender;
 
-    @ApiProperty()
-    PageNumber: number;
+    @IsString()
+    @IsNotEmpty()
+    role: Role;
 
+    @IsNotEmpty()
+    @IsPositive()
+    page: number;
+
+    @IsNotEmpty()
     @ApiProperty()
-    PageSize: number;
+    @IsPositive()
+    limit: number;
+
+    @IsNotEmpty()
+    @IsString()
+    @ApiProperty()
+    filter = [];
 }
