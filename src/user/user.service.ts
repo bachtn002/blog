@@ -5,8 +5,6 @@ import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { UserDto } from './dto/user.dto';
 import { PaginatedResultDto } from './dto/panigated.result.dto';
-import { Role } from './entities/role.enum';
-
 @Injectable()
 export class UserService {
   constructor(

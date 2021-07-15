@@ -1,11 +1,9 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UsePipes, ValidationPipe, Response } from '@nestjs/common';
 import { UserService } from './user.service';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { Roles } from './entities/role.decorator';
 import { AuthGuard } from '@nestjs/passport';
 import { Role } from './entities/role.enum';
 import { UserDto } from './dto/user.dto';
-import { Query } from '@nestjs/common';
 
 @Controller('api/user')
 export class UserController {
@@ -13,7 +11,7 @@ export class UserController {
   ) { }
 
   @Post('sign-up')
-  @UsePipes(new ValidationPipe({ transform: true }))
+  @UsePipes(new ValidationPipe({ transform: true , skipMissingProperties: true}))
   create(@Body() dto: UserDto) {
     return this.userService.create(dto);
   }

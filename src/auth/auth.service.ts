@@ -2,11 +2,11 @@ import { forwardRef, Inject } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LoginUserDto } from 'src/user/dto/login-user.dto';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { UserDto } from 'src/user/dto/user.dto';
 
 @Injectable()
 export class AuthService {
@@ -26,25 +26,19 @@ export class AuthService {
         return null;
     }
 
-    public async createdToken(loginUserDto: LoginUserDto, response: any): Promise<any> {
+    public async createdToken(dto: UserDto, response: any): Promise<any> {
 
-        const userLogin = await this.userRepo.findOne({ Mobile: loginUserDto.Mobile, IsDelete: false });
+        const userLogin = await this.userRepo.findOne({ Mobile: dto.mobile, IsDelete: false });
         if (userLogin) {
-            const passWordHashIsMatch = await bcrypt.compare(loginUserDto.Password, userLogin.PasswordHash);
+            const passWordHashIsMatch = await bcrypt.compare(dto.password, userLogin.PasswordHash);
             if (passWordHashIsMatch) {
                 const payload = { Mobile: userLogin.Mobile, UserId: userLogin.UserId, Role: userLogin.Role };
-                const refreshToken = this.jwtService.sign(payload, {
-                    secret: process.env.SECRET_KEY_TOKEN,
-                    expiresIn: '500000s',
-                });
                 const data = {
                     AccessToken: this.jwtService.sign(payload, {
                         secret: process.env.SECRET_KEY_TOKEN,
                         expiresIn: '30000s',
-                    }),
-                    RefreshToken: refreshToken
+                    })
                 };
-                // await this.userService.saveRefreshToken(refreshToken, userLogin.UserId);
                 return response.cookie('token', data, { httpOnly: true }).send('ok');
             } else {
                 return response.status(400).send({ message: 'Mobile or password incorrect' });
