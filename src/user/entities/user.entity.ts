@@ -25,10 +25,6 @@ export class User {
     @Column({ type: 'date', nullable: true })
     DOB: Date;
 
-    @Exclude()
-    @Column({ nullable: true})
-    public RefreshToken?: string;
-
     @Column({ type: 'bit', nullable: false, default: false })
     IsDelete: boolean;
 

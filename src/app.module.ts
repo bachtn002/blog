@@ -3,9 +3,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { User } from './user/entities/user.entity';
-import { Shop } from './user/entities/shop.entity';
-import { ShopUser } from './user/entities/shop.user.entity';
 import { ConfigModule } from '@nestjs/config';
+import { Shop } from './shop/entities/shop.entity';
+import { ShopUser } from './shop/entities/shop.user.entity';
+import { ShopModule } from './shop/shop.module';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { ConfigModule } from '@nestjs/config';
         User, Shop, ShopUser
       ],
       synchronize: false,
-    }), AuthModule, UserModule
+    }), AuthModule, UserModule, ShopModule
   ],
 })
 export class AppModule { }
