@@ -19,7 +19,7 @@ export class Shop {
     @Column({ type: 'nvarchar', nullable: false, length: 2500 })
     Description: string;
 
-    @Column({ type: 'enum',enum: ShopStatus, default: ShopStatus.ACTIVE })
+    @Column({ type: 'enum',enum: ShopStatus,nullable: true})
     ShopStatus: ShopStatus;
 
     @Column({ type: 'bit', nullable: false, default: false})

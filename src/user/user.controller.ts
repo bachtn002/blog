@@ -11,7 +11,7 @@ export class UserController {
   ) { }
 
   @Post('sign-up')
-  @UsePipes(new ValidationPipe({ transform: true , skipMissingProperties: true}))
+  @UsePipes(new ValidationPipe({ transform: true, skipMissingProperties: true }))
   create(@Body() dto: UserDto) {
     return this.userService.create(dto);
   }

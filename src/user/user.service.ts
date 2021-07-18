@@ -17,9 +17,10 @@ export class UserService {
       throw new HttpException({ message: 'Mobile must be unique' }, HttpStatus.BAD_REQUEST);
     }
     const passwordHash = await bcrypt.hash(dto.password, 10);
-    const userSaved = new User();
-    userSaved.Mobile = dto.mobile;
-    userSaved.PasswordHash = passwordHash;
+    const userSaved= this.userRepo.create({
+      Mobile: dto.mobile, 
+      PasswordHash: passwordHash
+    });
     await this.userRepo.save(userSaved);
     return userSaved;
   }
@@ -87,13 +88,5 @@ export class UserService {
     const user = await this.userRepo.findOne({ Mobile: Mobile });
     return user;
   }
-  public async saveRefreshToken(refreshToken: string, UserId: string) {
-    await this.userRepo.update(UserId, { RefreshToken: refreshToken });
-  }
-  public async getUserWithRefreshToken(refreshToken: string, UserId: string) {
-    const user = await this.findOne(UserId);
-    if (refreshToken === user.RefreshToken) {
-      return user;
-    }
-  }
+  
 }

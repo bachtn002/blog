@@ -6,8 +6,8 @@ import { User } from './entities/user.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { AuthService } from 'src/auth/auth.service';
 import { JwtModule } from '@nestjs/jwt';
-import { Shop } from './entities/shop.entity';
-import { ShopUser } from './entities/shop.user.entity';
+import { Shop } from 'src/shop/entities/shop.entity';
+import { ShopUser } from 'src/shop/entities/shop.user.entity';
 
 @Module({
   controllers: [UserController],

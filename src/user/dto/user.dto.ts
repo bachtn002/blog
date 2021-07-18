@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsDate, IsDateString, IsNotEmpty, IsPositive, IsString, MaxLength, MinLength } from "class-validator";
+import { IsDate, IsNotEmpty, IsPositive, IsString, MaxLength, MinLength } from "class-validator";
 import { Gender } from "../entities/gender.enum";
 import { Role } from "../entities/role.enum";
 import { Match } from "./match.decorator";
@@ -22,7 +22,7 @@ export class UserDto{
     @IsString()
     @IsNotEmpty()
     @Match('password',{
-        message:'Repeat password not match'
+        message:'Confirm password not match'
     })
     confirmPassword: string;
 
